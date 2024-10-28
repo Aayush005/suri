@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suri Dynasty MCQ Quiz</title>
+    <style>
+        /* Reset some default styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f0f8ff, #e6f7ff);
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Accommodate fixed elements */
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Timer Styling */
+        .timer {
+            position: fixed;          /* Fixes the position relative to the viewport */
+            top: 20px;                /* Positions 20px from the top */
+            right: 20px;              /* Positions 20px from the right */
+            font-size: 1.5rem;        /* Sets a readable font size */
+            color: #d9534f;           /* Sets the text color (red) */
+            font-weight: bold;        /* Makes the text bold */
+            z-index: 1000;            /* Ensures the timer stays above other elements */
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
+            padding: 10px 15px;       /* Adds padding around the timer text */
+            border-radius: 5px;       /* Rounds the corners of the timer box */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Adds a subtle shadow for depth */
+        }
+
+        /* Question Map Sidebar Styling */
+        .question-map {
+            position: fixed;          
+            top: 80px;                /* Positioned below the timer */
+            right: 20px;               /* Positioned on the right */
+            width: 180px;              /* Increased width to accommodate 5 columns */
+            background-color: rgba(255, 255, 255, 0.9); 
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 999;             
+            max-height: 90vh;         
+            overflow-y: auto;         
+        }
+
+        .question-map h2 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            color: #007bff;
+        }
+
+        /* Update #questionLinks to Use CSS Grid */
+        #questionLinks {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-gap: 5px; /* Adjust the spacing between links as needed */
+            justify-items: center; /* Centers the links within each grid cell */
+        }
+
+        /* Adjust .question-map .question-link Styling */
+        .question-map .question-link {
+            padding: 5px 0; /* Reduces vertical padding */
+            font-size: 0.9rem; /* Slightly smaller font size for better fit */
+            width: 100%; /* Ensures the link takes the full width of the grid cell */
+            box-sizing: border-box; /* Includes padding and border in the element's total width and height */
+            border-radius: 4px; /* Maintains rounded corners */
+            text-align: center; /* Centers the text within the link */
+            background-color: #f8f9fa;
+            color: #007bff;
+            text-decoration: none;
+            border: 1px solid #007bff;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .question-map .question-link:hover {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        /* Add Correct and Incorrect Classes for Highlighting */
+        .question-map .question-link.correct {
+            background-color: #28a745; /* Green background */
+            color: #fff; /* White text */
+            border-color: #28a745; /* Green border */
+        }
+
+        .question-map .question-link.incorrect {
+            background-color: #dc3545; /* Red background */
+            color: #fff; /* White text */
+            border-color: #dc3545; /* Red border */
+        }
+
+        /* Add Attempted Class for Highlighting */
+        .question-map .question-link.attempted {
+            background-color: #17a2b8; /* Blue background for attempted questions */
+            color: #fff; /* White text */
+            border-color: #17a2b8; /* Blue border */
+        }
+
+        /* Submit Button and Score Styling */
+        .question-map .submit-section {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .question-map .submit-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .question-map .submit-btn:hover {
+            background-color: #218838;
+        }
+
+        .question-map .submit-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .question-map .result {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #17a2b8;
+        }
+
+        /* Smooth Scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Quiz Container Styling */
+        .quiz-container {
+            background-color: #fff;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+            margin-right: 200px; /* Accommodates the question map sidebar on the right */
+            margin-top: 50px;     /* Maintains spacing from the top */
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #007bff;
+        }
+
+        .question {
+            margin-bottom: 25px;
+        }
+
+        .question p {
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .options label {
+            display: block;
+            margin-bottom: 8px;
+            padding: 10px 15px;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .options input[type="radio"] {
+            display: none;
+        }
+
+        .options input[type="radio"]:checked + label {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        .options label:hover {
+            background-color: #e6f0ff;
+        }
+
+        .submit-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            background-color: #218838;
+        }
+
+        .submit-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 30px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-align: center;
+            color: #17a2b8;
+        }
+
+        /* Feedback Message Styling */
+        .feedback {
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .feedback.right {
+            color: #28a745; /* Green for correct answers */
+        }
+
+        .feedback.wrong {
+            color: #dc3545; /* Red for incorrect answers */
+        }
+
+        .feedback.not-attempted {
+            color: #6c757d; /* Gray for not attempted */
+        }
+
+        /* Alert when time is low */
+        .alert {
+            animation: blink 1s steps(5, start) infinite;
+        }
+
+        @keyframes blink {
+            to {
+                visibility: hidden;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .quiz-container {
+                margin-right: 0; /* Removes right margin on small screens */
+            }
+
+            .question-map {
+                display: none; /* Hides the question map on small screens */
+            }
+
+            .toggle-question-map {
+                display: block; /* Shows toggle button on small screens */
+            }
+        }
+
+        /* Toggle Button for Question Map (Visible on Small Screens) */
+        .toggle-question-map {
+            position: fixed;
+            top: 20px;
+            right: 20px; /* Positioned on the right */
+            z-index: 1001;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: none; /* Hidden by default */
+        }
+
+        /* Active State for Question Map on Small Screens */
+        .question-map.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Timer Display -->
+    <div class="timer" id="timer">10:00</div>
+
+    <!-- Toggle Button for Question Map (Visible on Small Screens) -->
+    <button class="toggle-question-map" id="toggleQuestionMap">☰</button>
+
+    <!-- Question Map Sidebar -->
+    <div class="question-map" id="questionMap">
+        <h2>Question Map</h2>
+        <div id="questionLinks">
+            <!-- Question links will be injected here by JavaScript -->
+        </div>
+        <!-- Submit Button and Score Display Below the Question Links -->
+        <div class="submit-section">
+            <button type="button" class="submit-btn" id="submitBtn" onclick="checkAnswers()">Submit</button>
+            <div id="result" class="result"></div>
+        </div>
+    </div>
+
+    <div class="quiz-container">
+        <h1>Suri Dynasty MCQ Quiz</h1>
+        
+        <form id="quizForm">
+            <!-- Questions will be injected here by JavaScript -->
+        </form>
+
+        <!-- Submit Button and Score Display Below the Questions List -->
+        <div class="submit-section">
+            <button type="button" class="submit-btn" id="submitBtnBelow" onclick="checkAnswers()">Submit</button>
+            <div id="resultBelow" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Declare shuffledQuestions globally
+        let shuffledQuestions = [];
+
+        // Replace the following array with your own questions
+        const questions = [
+  // 1-35: Early Life and Rise to Power
+  {
+    id: 'q1',
+    question: 'In which year was Sher Shah Suri born?',
+    options: [
+      { text: '1486 AD', isCorrect: true },
+      { text: '1500 AD', isCorrect: false },
+      { text: '1525 AD', isCorrect: false },
+      { text: '1540 AD', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q2',
+    question: 'Sher Shah Suri was born in which place?',
+    options: [
+      { text: 'Sasaram', isCorrect: false },
+      { text: 'Hisar', isCorrect: true },
+      { text: 'Patna', isCorrect: false },
+      { text: 'Delhi', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q3',
+    question: 'What was Sher Shah Suri\'s childhood name?',
+    options: [
+      { text: 'Jalal', isCorrect: false },
+      { text: 'Farid', isCorrect: true },
+      { text: 'Muhammad', isCorrect: false },
+      { text: 'Ali', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q4',
+    question: 'Who gave Sher Shah Suri the title "Sher Khan"?',
+    options: [
+      { text: 'Emperor Humayun', isCorrect: false },
+      { text: 'Muhammad Shah (Bahar Khan Lohani)', isCorrect: true },
+      { text: 'Raja Keerat Singh', isCorrect: false },
+      { text: 'Qazi Fazilat', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q5',
+    question: 'Sher Shah Suri was appointed Governor of which region?',
+    options: [
+      { text: 'Bengal', isCorrect: false },
+      { text: 'Bihar', isCorrect: true },
+      { text: 'Marwar', isCorrect: false },
+      { text: 'Bundelkhand', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q6',
+    question: 'Sher Shah Suri earned his title "Sher Khan" by killing a what?',
+    options: [
+      { text: 'Tiger', isCorrect: false },
+      { text: 'Lion', isCorrect: true },
+      { text: 'Elephant', isCorrect: false },
+      { text: 'Leopard', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q7',
+    question: 'Muhammad Shah held what position when he appointed Sher Shah as Governor of Bihar?',
+    options: [
+      { text: 'Emperor', isCorrect: false },
+      { text: 'Sultan', isCorrect: false },
+      { text: 'Governor', isCorrect: true },
+      { text: 'Prime Minister', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q8',
+    question: 'Which widow did Sher Shah Suri marry first?',
+    options: [
+      { text: 'Dudu Begum', isCorrect: true },
+      { text: 'Ladmalika', isCorrect: false },
+      { text: 'Beegum', isCorrect: false },
+      { text: 'Samalika', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q9',
+    question: 'In what year did Sher Shah Suri marry Ladmalika?',
+    options: [
+      { text: '1530 AD', isCorrect: true },
+      { text: '1525 AD', isCorrect: false },
+      { text: '1540 AD', isCorrect: false },
+      { text: '1545 AD', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q10',
+    question: 'Sher Shah Suri defeated Humayun in which battle in 1539 AD?',
+    options: [
+      { text: 'Battle of Kannauj', isCorrect: false },
+      { text: 'Battle of Chausa', isCorrect: true },
+      { text: 'Battle of Marwar', isCorrect: false },
+      { text: 'Battle of Kalinjar', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q11',
+    question: 'Defeating Humayun in which battle led to Sher Shah Suri\'s coronation?',
+    options: [
+      { text: 'Battle of Chausa', isCorrect: false },
+      { text: 'Battle of Kannauj', isCorrect: true },
+      { text: 'Battle of Semal', isCorrect: false },
+      { text: 'Battle of Marwar', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q12',
+    question: 'In which year did Sher Shah Suri ascend the throne as Sher Shah Suri?',
+    options: [
+      { text: '1539 AD', isCorrect: false },
+      { text: '1540 AD', isCorrect: true },
+      { text: '1541 AD', isCorrect: false },
+      { text: '1545 AD', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q13',
+    question: 'What was the initial name of the Grand Trunk Road?',
+    options: [
+      { text: 'Sadak-e-Azam', isCorrect: true },
+      { text: 'Patna Road', isCorrect: false },
+      { text: 'Qila Road', isCorrect: false },
+      { text: 'Marwar Road', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q14',
+    question: 'Which mosque did Sher Shah Suri construct in Delhi?',
+    options: [
+      { text: 'Jama Masjid', isCorrect: false },
+      { text: 'Qila-i-Kuhna Mosque', isCorrect: true },
+      { text: 'Red Fort Mosque', isCorrect: false },
+      { text: 'Humayun\'s Mosque', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q15',
+    question: 'What was Pataliputra renamed to in 1541 AD?',
+    options: [
+      { text: 'Delhi', isCorrect: false },
+      { text: 'Patna', isCorrect: true },
+      { text: 'Lahore', isCorrect: false },
+      { text: 'Sasaram', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q16',
+    question: 'How many Sarkars (districts) was the Suri Empire divided into?',
+    options: [
+      { text: '25', isCorrect: false },
+      { text: '35', isCorrect: false },
+      { text: '47', isCorrect: true },
+      { text: '50', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q17',
+    question: 'What unit of measurement did Sher Shah Suri implement?',
+    options: [
+      { text: 'Meter', isCorrect: false },
+      { text: 'Jarib', isCorrect: true },
+      { text: 'Kilogram', isCorrect: false },
+      { text: 'Mile', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q18',
+    question: 'Who was the first Amin-i-Bangla (Amir-i-Bengal) appointed by Sher Shah Suri?',
+    options: [
+      { text: 'Jalal Khan', isCorrect: false },
+      { text: 'Qazi Fazilat', isCorrect: true },
+      { text: 'Malik Muhammad Jayasi', isCorrect: false },
+      { text: 'Muhammad Shah', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q19',
+    question: 'Which title did Sher Shah Suri adopt after defeating Nusrat Shah of Bengal?',
+    options: [
+      { text: 'Hazrat Alaa-A', isCorrect: false },
+      { text: 'Fakhruddin Ali', isCorrect: true },
+      { text: 'Islam Shah', isCorrect: false },
+      { text: 'Amir-i-Kuhna', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q20',
+    question: 'Who renamed Sadak-e-Azam to Grand Trunk Road?',
+    options: [
+      { text: 'Sher Shah Suri', isCorrect: false },
+      { text: 'Emperor Akbar', isCorrect: false },
+      { text: 'Lord Auckland', isCorrect: true },
+      { text: 'Maharaja Ranjit Singh', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q21',
+    question: 'Which city was renamed Patna by Sher Shah Suri?',
+    options: [
+      { text: 'Pataliputra', isCorrect: true },
+      { text: 'Hisar', isCorrect: false },
+      { text: 'Delhi', isCorrect: false },
+      { text: 'Kolkata', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q22',
+    question: 'What was the unit of measurement used by Sher Shah Suri?',
+    options: [
+      { text: 'Meter', isCorrect: false },
+      { text: 'Jarib', isCorrect: true },
+      { text: 'Foot', isCorrect: false },
+      { text: 'Mile', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q23',
+    question: 'Which department was NOT part of Sher Shah Suri\'s revenue system?',
+    options: [
+      { text: 'Department of Education', isCorrect: true },
+      { text: 'Department of Revenue', isCorrect: false },
+      { text: 'Department of Foreign Affairs (Rasalat)', isCorrect: false },
+      { text: 'Department of Correspondence with States', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q24',
+    question: 'What was the primary purpose of the Amin-i-Bangla position?',
+    options: [
+      { text: 'Tax collection', isCorrect: false },
+      { text: 'Oversight of administrative affairs', isCorrect: true },
+      { text: 'Military leadership', isCorrect: false },
+      { text: 'Religious affairs', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q25',
+    question: 'Which mosque in Delhi was constructed by Sher Shah Suri?',
+    options: [
+      { text: 'Jama Masjid', isCorrect: false },
+      { text: 'Qila-i-Kuhna Mosque', isCorrect: true },
+      { text: 'Red Fort Mosque', isCorrect: false },
+      { text: 'Humayun\'s Mosque', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q26',
+    question: 'What was the primary role of Qazi Fazilat?',
+    options: [
+      { text: 'Minister of Finance', isCorrect: false },
+      { text: 'First Amin-i-Bangla', isCorrect: true },
+      { text: 'Military General', isCorrect: false },
+      { text: 'Chief Architect', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q27',
+    question: 'Sher Shah Suri\'s campaign in Marwar targeted which ruler?',
+    options: [
+      { text: 'Udai Singh', isCorrect: false },
+      { text: 'Maldev', isCorrect: true },
+      { text: 'Taj Khan', isCorrect: false },
+      { text: 'Bahar Khan Lohani', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q28',
+    question: 'Which king ruled Chittor when Sher Shah Suri attacked in 1544 AD?',
+    options: [
+      { text: 'Raja Keerat Singh', isCorrect: false },
+      { text: 'Udai Singh', isCorrect: true },
+      { text: 'Taj Khan', isCorrect: false },
+      { text: 'Maldev', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q29',
+    question: 'What was the intended purpose of Sher Shah Suri\'s campaign against Kalinjar?',
+    options: [
+      { text: 'Capture a dancer', isCorrect: true },
+      { text: 'Secure trade routes', isCorrect: false },
+      { text: 'Expand territory', isCorrect: false },
+      { text: 'Defeat Humayun', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q30',
+    question: 'Which cannon explosion led to Sher Shah Suri\'s death?',
+    options: [
+      { text: 'Barood', isCorrect: false },
+      { text: 'Ukka', isCorrect: true },
+      { text: 'Qazi', isCorrect: false },
+      { text: 'Fazilat', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q31',
+    question: 'In which year did Sher Shah Suri die?',
+    options: [
+      { text: '1540 AD', isCorrect: false },
+      { text: '1541 AD', isCorrect: false },
+      { text: '1544 AD', isCorrect: false },
+      { text: '1545 AD', isCorrect: true }
+    ]
+  },
+  {
+    id: 'q32',
+    question: 'Sher Shah Suri died during which campaign?',
+    options: [
+      { text: 'Chausa', isCorrect: false },
+      { text: 'Marwar', isCorrect: false },
+      { text: 'Kalinjar', isCorrect: true },
+      { text: 'Kannauj', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q33',
+    question: 'Sher Shah Suri\'s quote about losing Hindustan was related to which campaign?',
+    options: [
+      { text: 'Chausa', isCorrect: false },
+      { text: 'Kannauj', isCorrect: false },
+      { text: 'Marwar/Semal', isCorrect: true },
+      { text: 'Kalinjar', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q34',
+    question: 'Who refused Sher Shah Suri\'s request to capture a dancer in Kalinjar?',
+    options: [
+      { text: 'Raja Keerat Singh', isCorrect: true },
+      { text: 'Udai Singh', isCorrect: false },
+      { text: 'Maldev', isCorrect: false },
+      { text: 'Taj Khan', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q35',
+    question: 'What was the primary connection facilitated by the Grand Trunk Road?',
+    options: [
+      { text: 'Trade between Europe and Asia', isCorrect: false },
+      { text: 'Connectivity across major cities in India', isCorrect: true },
+      { text: 'Communication between the army and the court', isCorrect: false },
+      { text: 'Transportation of agricultural produce', isCorrect: false }
+    ]
+  },
+
+  // 36-80: Administration, Governance, Legacy, and Other Information
+  {
+    id: 'q36',
+    question: 'Sher Shah Suri earned his title "Sher Khan" by killing a what?',
+    options: [
+      { text: 'Tiger', isCorrect: false },
+      { text: 'Lion', isCorrect: true },
+      { text: 'Elephant', isCorrect: false },
+      { text: 'Leopard', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q37',
+    question: 'Sasaram, Bihar is significant because it is the location of:',
+    options: [
+      { text: 'Qila-i-Kuhna Mosque', isCorrect: false },
+      { text: 'Sher Shah\'s Tomb', isCorrect: true },
+      { text: 'Grand Trunk Road\'s origin', isCorrect: false },
+      { text: 'Patna\'s renaming', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q38',
+    question: 'Which title refers to the Second Afghan Empire?',
+    options: [
+      { text: 'Mughal Empire', isCorrect: false },
+      { text: 'Suri Dynasty', isCorrect: true },
+      { text: 'Gupta Empire', isCorrect: false },
+      { text: 'Maurya Empire', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q39',
+    question: 'Amin-i-Bangla was appointed to look after which region?',
+    options: [
+      { text: 'Bihar', isCorrect: false },
+      { text: 'Bengal', isCorrect: true },
+      { text: 'Marwar', isCorrect: false },
+      { text: 'Bundelkhand', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q40',
+    question: 'Which battle secured Sher Shah Suri’s control over Kannauj?',
+    options: [
+      { text: 'Battle of Chausa', isCorrect: false },
+      { text: 'Battle of Kannauj', isCorrect: true },
+      { text: 'Battle of Semal', isCorrect: false },
+      { text: 'Battle of Kalinjar', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q41',
+    question: 'Which road, initially named Sadak-e-Azam, connects Lahore to Kolkata?',
+    options: [
+      { text: 'Yamuna Expressway', isCorrect: false },
+      { text: 'Grand Trunk Road', isCorrect: true },
+      { text: 'National Highway 1', isCorrect: false },
+      { text: 'Mumbai-Pune Expressway', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q42',
+    question: 'What was the purpose of the postal system introduced by Sher Shah Suri?',
+    options: [
+      { text: 'Trade facilitation', isCorrect: false },
+      { text: 'Military communication', isCorrect: false },
+      { text: 'Structured communication across the empire', isCorrect: true },
+      { text: 'Religious dissemination', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q43',
+    question: 'Which architectural work of Sher Shah Suri is located in Delhi?',
+    options: [
+      { text: 'Sher Shah\'s Tomb', isCorrect: false },
+      { text: 'Qila-i-Kuhna Mosque', isCorrect: true },
+      { text: 'Red Fort', isCorrect: false },
+      { text: 'Humayun\'s Tomb', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q44',
+    question: 'What standardized coins did Sher Shah Suri introduce?',
+    options: [
+      { text: '178 grains silver, 380 grains copper', isCorrect: true },
+      { text: '100 grains silver, 200 grains copper', isCorrect: false },
+      { text: '200 grains silver, 300 grains copper', isCorrect: false },
+      { text: '150 grains silver, 250 grains copper', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q45',
+    question: 'Which structure reflects the grandeur of Sher Shah Suri’s reign and is located in Sasaram?',
+    options: [
+      { text: 'Qila-i-Kuhna Mosque', isCorrect: false },
+      { text: 'Grand Trunk Road', isCorrect: false },
+      { text: 'Sher Shah\'s Tomb', isCorrect: true },
+      { text: 'Patna Fort', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q46',
+    question: 'Which poet was a contemporary of Sher Shah Suri?',
+    options: [
+      { text: 'Amir Khusro', isCorrect: false },
+      { text: 'Kabir', isCorrect: false },
+      { text: 'Malik Muhammad Jayasi', isCorrect: true },
+      { text: 'Tulsidas', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q47',
+    question: 'What was the primary purpose of the "Jarib" unit?',
+    options: [
+      { text: 'Currency', isCorrect: false },
+      { text: 'Land measurement', isCorrect: true },
+      { text: 'Timekeeping', isCorrect: false },
+      { text: 'Military ranking', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q48',
+    question: 'Which language did Sher Shah Suri promote in administration?',
+    options: [
+      { text: 'Hindi', isCorrect: false },
+      { text: 'Persian', isCorrect: false },
+      { text: 'Awadhi', isCorrect: true },
+      { text: 'Sanskrit', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q49',
+    question: 'Sher Shah Suri introduced the practice of what in 1541 AD?',
+    options: [
+      { text: 'Renaming Pataliputra', isCorrect: true },
+      { text: 'Establishing schools', isCorrect: false },
+      { text: 'Implementing the postal system', isCorrect: false },
+      { text: 'Building forts', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q50',
+    question: 'Which economic policy did Sher Shah Suri implement to facilitate trade and stability?',
+    options: [
+      { text: 'Introduction of paper currency', isCorrect: false },
+      { text: 'Standardized coinage', isCorrect: true },
+      { text: 'Free market policies', isCorrect: false },
+      { text: 'Agricultural subsidies', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q51',
+    question: 'Which system did Sher Shah Suri implement to enhance tax collection?',
+    options: [
+      { text: 'Zamindari system', isCorrect: false },
+      { text: 'Revenue system', isCorrect: true },
+      { text: 'Jagirdari system', isCorrect: false },
+      { text: 'Feudal system', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q52',
+    question: 'Which department was responsible for correspondence with states in the Suri administration?',
+    options: [
+      { text: 'Department of Revenue', isCorrect: false },
+      { text: 'Department of Foreign Affairs (Rasalat)', isCorrect: false },
+      { text: 'Department of Education', isCorrect: false },
+      { text: 'Department of Correspondence with States', isCorrect: true }
+    ]
+  },
+  {
+    id: 'q53',
+    question: 'What was the main purpose of building numerous roads during Sher Shah Suri\'s reign?',
+    options: [
+      { text: 'To facilitate trade', isCorrect: false },
+      { text: 'To enhance connectivity across the empire', isCorrect: true },
+      { text: 'To support military movements', isCorrect: false },
+      { text: 'To promote cultural exchange', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q54',
+    question: 'What was the economic value of Sher Shah Suri\'s coinage?',
+    options: [
+      { text: '100 grains silver, 200 grains copper', isCorrect: false },
+      { text: '178 grains silver, 380 grains copper', isCorrect: true },
+      { text: '200 grains silver, 300 grains copper', isCorrect: false },
+      { text: '150 grains silver, 250 grains copper', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q55',
+    question: 'Which department was responsible for managing tax determination and income-expenditure inspections?',
+    options: [
+      { text: 'Department of Revenue', isCorrect: false },
+      { text: 'Department of Foreign Affairs', isCorrect: false },
+      { text: 'Rent assessment and income-expenditure inspector', isCorrect: true },
+      { text: 'Department of Correspondence', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q56',
+    question: 'Which department handled foreign affairs in the Suri Empire?',
+    options: [
+      { text: 'Department of Revenue', isCorrect: false },
+      { text: 'Department of Foreign Affairs (Rasalat)', isCorrect: true },
+      { text: 'Department of Education', isCorrect: false },
+      { text: 'Department of Correspondence with States', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q57',
+    question: 'Which of the following regions was NOT mentioned as part of Sher Shah Suri\'s empire?',
+    options: [
+      { text: 'Baluchistan', isCorrect: false },
+      { text: 'Ayodhya', isCorrect: false },
+      { text: 'Assam', isCorrect: false },
+      { text: 'Punjab', isCorrect: true }
+    ]
+  },
+  {
+    id: 'q58',
+    question: 'Which department did Qazi Fazilat belong to?',
+    options: [
+      { text: 'Revenue Department', isCorrect: false },
+      { text: 'Foreign Affairs Department', isCorrect: false },
+      { text: 'Correspondence Department', isCorrect: false },
+      { text: 'Intelligence Department', isCorrect: true }
+    ]
+  },
+  {
+    id: 'q59',
+    question: 'Which language did Sher Shah Suri promote in administration?',
+    options: [
+      { text: 'Hindi', isCorrect: false },
+      { text: 'Awadhi', isCorrect: true },
+      { text: 'Sanskrit', isCorrect: false },
+      { text: 'Urdu', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q60',
+    question: 'Which department was responsible for correspondence with states in the Suri administration?',
+    options: [
+      { text: 'Department of Revenue', isCorrect: false },
+      { text: 'Department of Foreign Affairs (Rasalat)', isCorrect: false },
+      { text: 'Department of Education', isCorrect: false },
+      { text: 'Department of Correspondence with States', isCorrect: true }
+    ]
+  },
+  {
+    id: 'q61',
+    question: 'What was Sher Shah Suri\'s governance described as?',
+    options: [
+      { text: 'Decentralized', isCorrect: false },
+      { text: 'Highly centralized', isCorrect: true },
+      { text: 'Feudal', isCorrect: false },
+      { text: 'Democratic', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q62',
+    question: 'Into how many Sarkars was the Suri Empire divided?',
+    options: [
+      { text: '25', isCorrect: false },
+      { text: '47', isCorrect: true },
+      { text: '50', isCorrect: false },
+      { text: '35', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q63',
+    question: 'Which language did Sher Shah Suri promote?',
+    options: [
+      { text: 'Hindi', isCorrect: false },
+      { text: 'Awadhi', isCorrect: true },
+      { text: 'Sanskrit', isCorrect: false },
+      { text: 'Urdu', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q64',
+    question: 'Which of Sher Shah Suri\'s initiatives helped in enhancing communication across his empire?',
+    options: [
+      { text: 'Building forts', isCorrect: false },
+      { text: 'Establishing a postal system', isCorrect: true },
+      { text: 'Introducing standardized coinage', isCorrect: false },
+      { text: 'Promoting Awadhi language', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q65',
+    question: 'What was Sher Shah Suri\'s tomb built on in Sasaram?',
+    options: [
+      { text: 'A hilltop', isCorrect: false },
+      { text: 'A high mound in the middle of a lake', isCorrect: true },
+      { text: 'A flat plain', isCorrect: false },
+      { text: 'The banks of a river', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q66',
+    question: 'Which department was responsible for managing communication with other states?',
+    options: [
+      { text: 'Department of Revenue', isCorrect: false },
+      { text: 'Department of Foreign Affairs (Rasalat)', isCorrect: false },
+      { text: 'Department of Education', isCorrect: false },
+      { text: 'Department of Correspondence with States', isCorrect: true }
+    ]
+  },
+  {
+    id: 'q67',
+    question: 'What structure signifies Sher Shah Suri’s architectural legacy in Delhi?',
+    options: [
+      { text: 'Red Fort', isCorrect: false },
+      { text: 'Qila-i-Kuhna Mosque', isCorrect: true },
+      { text: 'Jama Masjid', isCorrect: false },
+      { text: 'Humayun\'s Tomb', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q68',
+    question: 'Sher Shah Suri\'s coinage included how many grains of silver?',
+    options: [
+      { text: '150', isCorrect: false },
+      { text: '178', isCorrect: true },
+      { text: '200', isCorrect: false },
+      { text: '380', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q69',
+    question: 'Which empire did Sher Shah Suri establish?',
+    options: [
+      { text: 'Mughal Empire', isCorrect: false },
+      { text: 'Gupta Empire', isCorrect: false },
+      { text: 'Suri Dynasty (Second Afghan Empire)', isCorrect: true },
+      { text: 'Maurya Empire', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q70',
+    question: 'What was the main purpose of Sher Shah Suri’s road construction?',
+    options: [
+      { text: 'Trade expansion', isCorrect: false },
+      { text: 'Military movement', isCorrect: false },
+      { text: 'Enhance connectivity', isCorrect: true },
+      { text: 'Religious pilgrimage', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q71',
+    question: 'Which road was initially called \'Sadak-e-Azam\'?',
+    options: [
+      { text: 'National Highway 1', isCorrect: false },
+      { text: 'Grand Trunk Road', isCorrect: true },
+      { text: 'Yamuna Expressway', isCorrect: false },
+      { text: 'Delhi-Lahore Road', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q72',
+    question: 'What was the main connection facilitated by the Grand Trunk Road?',
+    options: [
+      { text: 'Trade between Europe and Asia', isCorrect: false },
+      { text: 'Connectivity across major cities in India', isCorrect: true },
+      { text: 'Communication between the army and the court', isCorrect: false },
+      { text: 'Transportation of agricultural produce', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q73',
+    question: 'Which of Sher Shah Suri\'s initiatives contributed to economic stability?',
+    options: [
+      { text: 'Introduction of paper currency', isCorrect: false },
+      { text: 'Standardized coinage', isCorrect: true },
+      { text: 'Free trade policies', isCorrect: false },
+      { text: 'Agricultural reforms', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q74',
+    question: 'Which system did Sher Shah Suri implement for systematic collection and management of taxes?',
+    options: [
+      { text: 'Zamindari system', isCorrect: false },
+      { text: 'Revenue system', isCorrect: true },
+      { text: 'Jagirdari system', isCorrect: false },
+      { text: 'Feudal system', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q75',
+    question: 'Which of the following was NOT a public work initiated by Sher Shah Suri?',
+    options: [
+      { text: 'Grand Trunk Road', isCorrect: false },
+      { text: 'Qila-i-Kuhna Mosque', isCorrect: false },
+      { text: 'Taj Mahal', isCorrect: true },
+      { text: 'Postal system', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q76',
+    question: 'Which language did Sher Shah Suri promote in administration?',
+    options: [
+      { text: 'Hindi', isCorrect: false },
+      { text: 'Awadhi', isCorrect: true },
+      { text: 'Sanskrit', isCorrect: false },
+      { text: 'Urdu', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q77',
+    question: 'Sher Shah Suri introduced the practice of what in 1541 AD?',
+    options: [
+      { text: 'Renaming Pataliputra', isCorrect: true },
+      { text: 'Establishing schools', isCorrect: false },
+      { text: 'Implementing the postal system', isCorrect: false },
+      { text: 'Building forts', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q78',
+    question: 'What was the primary connection facilitated by the Grand Trunk Road?',
+    options: [
+      { text: 'Trade between Europe and Asia', isCorrect: false },
+      { text: 'Connectivity across major cities in India', isCorrect: true },
+      { text: 'Communication between the army and the court', isCorrect: false },
+      { text: 'Transportation of agricultural produce', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q79',
+    question: 'What was the economic value of Sher Shah Suri\'s coinage?',
+    options: [
+      { text: '178 grains silver, 380 grains copper', isCorrect: true },
+      { text: '100 grains silver, 200 grains copper', isCorrect: false },
+      { text: '200 grains silver, 300 grains copper', isCorrect: false },
+      { text: '150 grains silver, 250 grains copper', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q80',
+    question: 'What was the primary purpose of establishing the postal system by Sher Shah Suri?',
+    options: [
+      { text: 'Trade facilitation', isCorrect: false },
+      { text: 'Military communication', isCorrect: false },
+      { text: 'Structured communication across the empire', isCorrect: true },
+      { text: 'Religious dissemination', isCorrect: false }
+    ]
+  }
+];
+
+
+        // Function to shuffle an array using Fisher-Yates algorithm
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Function to render the questions dynamically
+        function renderQuestions() {
+            const quizForm = document.getElementById('quizForm');
+            const questionsArray = getQuestions(); // Retrieve the questions array
+            if (!questionsArray || !Array.isArray(questionsArray) || questionsArray.length < 25) {
+                quizForm.innerHTML = '<p>Insufficient questions available. Please ensure there are at least 25 questions in the questions array.</p>';
+                return;
+            }
+
+            // Randomly select 25 questions from the available questions
+            const selectedQuestions = getRandomQuestions(questionsArray, 25);
+
+            // Assign shuffledQuestions to the global variable
+            shuffledQuestions = shuffleArray([...selectedQuestions]); // Create a copy and shuffle
+
+            shuffledQuestions.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.classList.add('question');
+                questionDiv.id = `question-${index + 1}`; // Assign unique ID
+
+                // Question text
+                const questionText = document.createElement('p');
+                questionText.textContent = `${index + 1}. ${q.question}`;
+                questionDiv.appendChild(questionText);
+
+                // Options
+                const optionsDiv = document.createElement('div');
+                optionsDiv.classList.add('options');
+
+                // Shuffle options and assign back to q.options
+                q.options = shuffleArray([...q.options]);
+                const shuffledOptions = q.options;
+
+                // Assign labels A, B, C, D dynamically
+                const labels = ['A', 'B', 'C', 'D'];
+
+                shuffledOptions.forEach((option, optIndex) => {
+                    const optionId = `${q.id}_option${optIndex + 1}`; // Unique ID for each option
+
+                    const radioInput = document.createElement('input');
+                    radioInput.type = 'radio';
+                    radioInput.id = optionId;
+                    radioInput.name = q.id;
+                    radioInput.value = labels[optIndex]; // Assign label as value
+
+                    const label = document.createElement('label');
+                    label.htmlFor = optionId;
+                    label.textContent = `${labels[optIndex]}) ${option.text}`;
+
+                    optionsDiv.appendChild(radioInput);
+                    optionsDiv.appendChild(label);
+
+                    // Add Attempted Class when an option is selected
+                    radioInput.addEventListener('change', function() {
+                        const questionMapLink = document.querySelector(`.question-map .question-link[href="#question-${index + 1}"]`);
+                        if (questionMapLink && !questionMapLink.classList.contains('correct') && !questionMapLink.classList.contains('incorrect')) {
+                            questionMapLink.classList.add('attempted');
+                        }
+                    });
+                });
+
+                questionDiv.appendChild(optionsDiv);
+
+                // Add Feedback Div Below Options
+                const feedbackDiv = document.createElement('div');
+                feedbackDiv.classList.add('feedback');
+                feedbackDiv.id = `feedback-${index + 1}`; // Unique ID for each feedback div
+                questionDiv.appendChild(feedbackDiv);
+
+                quizForm.appendChild(questionDiv);
+            });
+
+            generateQuestionMap(shuffledQuestions.length);
+        }
+
+        // Function to retrieve the questions array
+        function getQuestions() {
+            // Replace this with your actual questions array
+            return questions; // Assuming 'questions' is defined globally
+        }
+
+        // Function to randomly select n questions from the questions array
+        function getRandomQuestions(questionsArray, n) {
+            const shuffled = shuffleArray([...questionsArray]);
+            return shuffled.slice(0, n);
+        }
+
+        // Function to generate the Question Map links
+        function generateQuestionMap(totalQuestions) {
+            const questionLinksDiv = document.getElementById('questionLinks');
+            questionLinksDiv.innerHTML = ''; // Clear any existing links
+
+            for (let i = 1; i <= totalQuestions; i++) {
+                const link = document.createElement('a');
+                link.href = `#question-${i}`;
+                link.classList.add('question-link');
+                link.textContent = `Q${i}`;
+
+                questionLinksDiv.appendChild(link);
+            }
+        }
+
+        // Timer Functionality
+        function startTimer(duration, display) {
+            let timer = duration, minutes, seconds;
+            const countdown = setInterval(function () {
+                minutes = parseInt(timer / 60, 10);
+                seconds = parseInt(timer % 60, 10);
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                display.textContent = minutes + ":" + seconds;
+
+                // Add alert class when time is less than 1 minute
+                if (timer <= 60 && timer > 0) { // 60 seconds = 1 minute
+                    display.classList.add('alert');
+                }
+
+                if (--timer < 0) {
+                    clearInterval(countdown);
+                    autoSubmit();
+                }
+            }, 1000);
+        }
+
+        // Function to automatically submit the quiz when time is up
+        function autoSubmit() {
+            alert("Time's up! The quiz will now be submitted.");
+            checkAnswers();
+        }
+
+        // Initialize the quiz on page load
+        window.onload = function () {
+            renderQuestions(); // Render questions on page load
+            const tenMinutes = 60 * 10, // 10 minutes in seconds
+                  display = document.getElementById('timer');
+            startTimer(tenMinutes, display);
+        };
+
+        // Function to check answers and display the result
+        function checkAnswers() {
+            let score = 0;
+            let totalQuestions = shuffledQuestions.length; // Total number of questions
+
+            shuffledQuestions.forEach((q, index) => { // Iterate over each question
+                const selectedOption = document.querySelector(`input[name="${q.id}"]:checked`);
+                const feedbackDiv = document.getElementById(`feedback-${index + 1}`);
+                
+                if (selectedOption) {
+                    // Get the selected label (A, B, C, D)
+                    const selectedLabel = selectedOption.value;
+                    // Map label to option index
+                    const labelIndex = ['A', 'B', 'C', 'D'].indexOf(selectedLabel);
+                    if (labelIndex !== -1 && q.options[labelIndex].isCorrect) {
+                        score += 1; // Add 1 mark for correct answer
+
+                        // Mark the question link as correct in the Question Map
+                        const questionMapLink = document.querySelector(`.question-map .question-link[href="#question-${index + 1}"]`);
+                        if (questionMapLink) {
+                            questionMapLink.classList.add('correct');
+                            questionMapLink.classList.remove('incorrect', 'attempted');
+                        }
+
+                        // Update Feedback Below the Question
+                        if (feedbackDiv) {
+                            feedbackDiv.textContent = 'Right';
+                            feedbackDiv.classList.add('right');
+                            feedbackDiv.classList.remove('wrong', 'not-attempted');
+                        }
+                    } else {
+                        score -= 0.5; // Deduct 0.5 marks for incorrect answer
+
+                        // Mark the question link as incorrect in the Question Map
+                        const questionMapLink = document.querySelector(`.question-map .question-link[href="#question-${index + 1}"]`);
+                        if (questionMapLink) {
+                            questionMapLink.classList.add('incorrect');
+                            questionMapLink.classList.remove('correct', 'attempted');
+                        }
+
+                        // Update Feedback Below the Question
+                        if (feedbackDiv) {
+                            feedbackDiv.textContent = 'Wrong';
+                            feedbackDiv.classList.add('wrong');
+                            feedbackDiv.classList.remove('right', 'not-attempted');
+                        }
+                    }
+                } else {
+                    // If the question was not answered, mark as not attempted
+                    const questionMapLink = document.querySelector(`.question-map .question-link[href="#question-${index + 1}"]`);
+                    if (questionMapLink) {
+                        // Remove both classes if the question was not answered
+                        questionMapLink.classList.remove('correct', 'incorrect', 'attempted');
+                    }
+
+                    // Update Feedback Below the Question
+                    if (feedbackDiv) {
+                        feedbackDiv.textContent = 'Not Attempted';
+                        feedbackDiv.classList.add('not-attempted');
+                        feedbackDiv.classList.remove('right', 'wrong');
+                    }
+                }
+            });
+
+            // Round the score to one decimal place
+            score = Math.round(score * 10) / 10;
+
+            // Update the result in the Question Map Sidebar
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = `You scored ${score} out of ${totalQuestions}`;
+
+            // Update the result below the questions list
+            const resultDivBelow = document.getElementById('resultBelow');
+            resultDivBelow.textContent = `You scored ${score} out of ${totalQuestions}`;
+
+            // Disable all inputs to prevent changes after submission
+            const inputs = document.querySelectorAll('input[type="radio"]');
+            inputs.forEach(input => {
+                input.disabled = true;
+            });
+
+            // Disable the submit buttons to prevent multiple submissions
+            const submitButton = document.getElementById('submitBtn');
+            submitButton.disabled = true;
+
+            const submitButtonBelow = document.getElementById('submitBtnBelow');
+            if (submitButtonBelow) {
+                submitButtonBelow.disabled = true;
+            }
+        }
+
+        // Toggle Question Map on small screens
+        const toggleBtn = document.getElementById('toggleQuestionMap');
+        const questionMap = document.getElementById('questionMap');
+
+        toggleBtn.addEventListener('click', () => {
+            questionMap.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>
